@@ -9,10 +9,11 @@ from django.middleware.csrf import get_token
 from stock_prediction.settings import HTTP_ONLY, HTTPS
 from datetime import timedelta
 from django.utils import timezone
+from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 
-
+now = datetime.now()
 class HttpOnlyTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         response =  super().post(request, *args, **kwargs)
@@ -25,7 +26,7 @@ class HttpOnlyTokenObtainPairView(TokenObtainPairView):
             httponly=HTTP_ONLY,
             secure=HTTPS,
             samesite='None',
-            expires=timezone.now() + timedelta(minutes=15)
+            expires= now + timedelta(minutes=15)
         )
         res.set_cookie(
             key='refresh',
@@ -33,7 +34,7 @@ class HttpOnlyTokenObtainPairView(TokenObtainPairView):
             httponly=HTTP_ONLY,
             secure=HTTPS,
             samesite='None',
-            expires=timezone.now() + timedelta(days=1)
+            expires= now + timedelta(days=1)
         )
 
         csrfToken =  get_token(request)
@@ -43,7 +44,7 @@ class HttpOnlyTokenObtainPairView(TokenObtainPairView):
             httponly=HTTP_ONLY,
             secure=HTTPS,
             samesite='None',
-            expires=timezone.now() + timedelta(minutes=15)
+            expires= now + timedelta(minutes=15)
         )
         
         res.data = {'csrfToken': csrfToken}
