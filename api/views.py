@@ -20,6 +20,7 @@ import yfinance as yf
 import os
 from django.conf import settings
 from sklearn.preprocessing import MinMaxScaler
+from .cloudinary import Cloudinary
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import load_model
 from sklearn.metrics import mean_squared_error, r2_score
@@ -76,9 +77,7 @@ class HttpOnlyTokenRefreshView(TokenRefreshView):
         else:
             request.data["refresh"] = refreshToken
             response = super().post(request, *args, **kwargs)
-            print("after calling parent ran")
             accessToken = response.data["access"]
-            print("access", accessToken)
             res = Response()
             res.set_cookie(
                 key="token",
@@ -108,7 +107,7 @@ class PredictStock(APIView):
     def post(self, request):
         serializer = TickerSerializer(data=request.data)
         if serializer.is_valid():
-            ticker = request.data['ticker']
+            ticker = request.data["ticker"]
             now = datetime.now()
             start = datetime(now.year - 10, now.month, now.day)
             end = now
@@ -121,6 +120,7 @@ class PredictStock(APIView):
                     }
                 )
             df = df.reset_index()
+            cld = Cloudinary()
             # plot Close prices
             plt.switch_backend("AGG")
             plt.figure(figsize=(12, 5))
@@ -131,7 +131,8 @@ class PredictStock(APIView):
             plt.legend()
             # Save the plot to a file
             plot_img_path = f"{ticker}_plot.png"
-            plot_img = self.save_plot(plot_img_path)
+            plot_img = cld.save_image(plt, plot_img_path)
+
             # 100 Days moving average
             ma100 = df.Close.rolling(100).mean()
             plt.switch_backend("AGG")
@@ -143,7 +144,7 @@ class PredictStock(APIView):
             plt.ylabel("Price")
             plt.legend()
             plot_img_path = f"{ticker}_100_dma.png"
-            plot_100_dma = self.save_plot(plot_img_path)
+            plot_100_dma = cld.save_image(plt, plot_img_path)
 
             # 200 Days moving average
             ma200 = df.Close.rolling(200).mean()
@@ -157,7 +158,7 @@ class PredictStock(APIView):
             plt.ylabel("Price")
             plt.legend()
             plot_img_path = f"{ticker}_200_dma.png"
-            plot_200_dma = self.save_plot(plot_img_path)
+            plot_200_dma = cld.save_image(plt, plot_img_path)
 
             # split data into training and testing dataset
             df_fulltrain, df_test = train_test_split(df, test_size=0.2, shuffle=False)
@@ -189,7 +190,7 @@ class PredictStock(APIView):
             plt.ylabel("Price")
             plt.legend()
             plot_img_path = f"{ticker}_final_prediction.png"
-            plot_prediction = self.save_plot(plot_img_path)
+            plot_prediction = cld.save_image(plt, plot_img_path)
 
             # Model Evaluation
             # Mean Squared Error (MSE)
@@ -209,18 +210,11 @@ class PredictStock(APIView):
                     "plot_200_dma": plot_200_dma,
                     "plot_prediction": plot_prediction,
                     "mse": round(mse, 2),
-                    "rmse": round(rmse,2)
-                    "r2": round(r2,2)
+                    "rmse": round(rmse, 2),
+                    "r2": round(r2, 2),
                 }
             )
         else:
             return Response(
                 {"message": "Invalid Ticker"}, status=status.HTTP_400_BAD_REQUEST
             )
-
-    def save_plot(self, plot_img_path):
-        image_path = os.path.join(settings.MEDIA_ROOT, plot_img_path)
-        plt.savefig(image_path)
-        plt.close()
-        image_url = settings.MEDIA_URL + plot_img_path
-        return image_url

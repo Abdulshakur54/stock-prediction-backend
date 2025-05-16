@@ -26,8 +26,10 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "django.contrib.staticfiles",
+    'cloudinary_storage',
+    'django.contrib.staticfiles',
     # third party apps
+    'cloudinary',
     "rest_framework",
     "corsheaders",
     # Our own apps
@@ -147,6 +149,12 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "SIGNING_KEY": SECRET_KEY
+}
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': config('CLOUDINARY_API_KEY'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET')
 }
 
 HTTPS = True
