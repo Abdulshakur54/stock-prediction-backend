@@ -22,7 +22,6 @@ from django.conf import settings
 from sklearn.preprocessing import MinMaxScaler
 from .cloudinary import Cloudinary
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.models import load_model
 from sklearn.metrics import mean_squared_error, r2_score
 import requests
 
