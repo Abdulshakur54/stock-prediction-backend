@@ -24,6 +24,7 @@ from .cloudinary import Cloudinary
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import load_model
 from sklearn.metrics import mean_squared_error, r2_score
+import requests
 
 
 class HttpOnlyTokenObtainPairView(TokenObtainPairView):
@@ -164,7 +165,7 @@ class PredictStock(APIView):
             df_fulltrain, df_test = train_test_split(df, test_size=0.2, shuffle=False)
             scaler = MinMaxScaler(feature_range=(0, 1))
             # Load ML Model
-            model = load_model("stock_prediction_model.keras")
+            # model = load_model("stock_prediction_model.keras")
 
             data_test = df_test.Close
             data_test_arr = scaler.fit_transform(data_test)
@@ -174,9 +175,13 @@ class PredictStock(APIView):
                 X_test.append(data_test_arr[i - 100 : i])
                 y_test.append(data_test_arr[i, 0])
             X_test, y_test = np.array(X_test), np.array(y_test)
-
+            url = 'https://abdulshakur54-stockprediction.hf.space'
+            payload = {'ticker': ticker}
+            headers = {'Content-Type': 'application/json'}
+            res = requests.post(url, json=payload, headers=headers)
+            prediction = res.json()['prediction']
             # prediction using the model
-            y_predict_test = model.predict(X_test)
+            y_predict_test = np.array(prediction)
             y_predict_test = scaler.inverse_transform(y_predict_test).flatten()
             y_test = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
 
