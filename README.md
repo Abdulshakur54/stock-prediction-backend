@@ -1,4 +1,4 @@
-## Frontend For Stock Prediction App Using Machine Learning
+## Backend For Stock Prediction App Using Machine Learning
 **This Repo stores the backend of a Fullstack Web application that employs Machine Learning and AI to predict stock prices of major companies in the United States.**    
 **It runs on microservice architecture.**   
 **There are 4 microservics in all as stated below**  
